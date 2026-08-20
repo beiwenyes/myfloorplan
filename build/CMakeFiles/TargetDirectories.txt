@@ -1,3 +1,0 @@
-/home/beiwen/eda/3Drouting/Cpractice/techtest/MiniFloorplan/build/CMakeFiles/minifloorplan.dir
-/home/beiwen/eda/3Drouting/Cpractice/techtest/MiniFloorplan/build/CMakeFiles/edit_cache.dir
-/home/beiwen/eda/3Drouting/Cpractice/techtest/MiniFloorplan/build/CMakeFiles/rebuild_cache.dir

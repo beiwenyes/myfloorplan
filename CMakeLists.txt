@@ -6,4 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(minifloorplan
     src/main.cpp
     src/Options.cpp
+    src/floorplan/FloorplanEngine.cpp
 )
+
+target_include_directories(minifloorplan PRIVATE src)
