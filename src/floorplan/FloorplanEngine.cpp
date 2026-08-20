@@ -14,7 +14,7 @@ bool FloorplanEngine::makeUniformRows(const std::string& site_name)
 
     if (site == nullptr) {
         std::cerr << "Error: cannot find site: " << site_name << "\n";
-        return false
+        return false;
     }
 
     if (!site->isValid()){

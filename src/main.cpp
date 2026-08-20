@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
     }
     
     FloorplanEngine engine(db);
-    if(!engin.makeUniformRows("CORE_SITE")) {
+    if(!engine.makeUniformRows("CORE_SITE")) {
         return 1;
     }
 
