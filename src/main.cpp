@@ -8,6 +8,7 @@
 #include "db/Database.h"
 #include "db/Row.h"
 #include "floorplan/FloorplanEngine.h"
+#include "parser/LefParser.h"
 
 int main(int argc, char* argv[])
 {
@@ -18,7 +19,8 @@ int main(int argc, char* argv[])
         printUsage(argv[0]);
         return 1;
     }
-
+    std::cout << "===============\n";
+    std::cout << "input test\n";
     std::cout << "MiniFloorplan started\n";
     std::cout << "LEF File: " << options.lef_file << "\n";
     std::cout << "DEF File: " << options.def_file << "\n";
@@ -26,7 +28,7 @@ int main(int argc, char* argv[])
     std::cout << "Read File Done\n";
     std::cout << "===============\n";
 
-    //测试site master
+    //create site and master
     Site test_site;
     test_site.name = "CORE_SITE";
     test_site.width = 190;
@@ -38,91 +40,77 @@ int main(int argc, char* argv[])
     test_master.height = 2800;
     test_master.type = MasterType::Core;
 
+    //create DataBase
     Database db;
+    //create lef parser
+    LefParser lef_parser;
+    std::cout << "Parse the LEF:\n";
+    std::cout << "file = " << options.lef_file << "\n";
 
-    db.addSite(test_site);
-    db.addMaster(test_master);
-
-    Master* found_master = db.findMaster("NAND2_X1");
-    if(found_master == nullptr){
-        std::cout << "Error: cannot find the master in database";
+    if(!lef_parser.read(options.lef_file, db)){
         return 1;
     }
-    Instance db_inst;
-    db_inst.name = "U1";
-    db_inst.master = found_master;
-    db_inst.origin.x = 1500;
-    db_inst.origin.y = 3000;
-    db_inst.orient = "N";
-    db_inst.status = PlacementStatus::Placed;
+    //测试parser的内容
+    std::cout << "line count = " << lef_parser.lineCount() << "\n";
+    std::cout << "site count = " << db.siteCount() << "\n";
+    std::cout << "status = success\n";
+    //测试parser的site是否正常保存
+    std::cout << "Parsed sites:\n";
+    //dbsite -> pair,pair具有map的内容，key = pair.first value = pair.second
+    for (const auto& pair : db.sites){
+        const Site& site = pair.second;
 
-    Block db_block;
-    db_block.name = "test_design";
-    db_block.die_area.lx = 0;
-    db_block.die_area.ly = 0;
-    db_block.die_area.ux = 10000;
-    db_block.die_area.uy = 8000;
+        std::cout << "  name    = " << site.name << "\n";
+        std::cout << "  width   = " << site.width << "\n";
+        std::cout << "  height  = " << site.height << "\n";
+        std::cout << "  valid   = " << site.isValid() << "\n";
+    }
 
-    db_block.core_area.lx = 1000;
-    db_block.core_area.ly = 1000;
-    db_block.core_area.ux = 9000;
-    db_block.core_area.uy = 7000;
-
-    db_block.addInstance(db_inst);
-    db.block = db_block;
-
-    Site* found_site = db.findSite("CORE_SITE");
-    if(found_site == nullptr){
-        std::cout << "Error: cannot find site CORE_SITE in database\n";
+    if(db.sites.empty()){
+        std::cerr << "Error:  no site found in LEF\n";
         return 1;
     }
-    
+    std::string site_name = db.sites.begin()->first;
+
+    std::cout << "Use site for row generation:\n";
+    std::cout << "  site name = " << site_name << "\n";
+    db.block.name = "test_design";
+
+    db.block.die_area.lx = 0;
+    db.block.die_area.ly = 0;
+    db.block.die_area.ux = 10000;
+    db.block.die_area.uy = 8000;
+
+    db.block.core_area.lx = 1000;
+    db.block.core_area.ly = 1000;
+    db.block.core_area.ux = 9000;
+    db.block.core_area.uy = 7000;
     FloorplanEngine engine(db);
-    if(!engine.makeUniformRows("CORE_SITE")) {
+    if(!engine.makeUniformRows(site_name)){
         return 1;
     }
 
-    std::cout << "Test database-owned instance:\n";
-    std::cout << "  site count       = " << db.siteCount() << "\n";
-    std::cout << "  master count     = " << db.masterCount() << "\n";
-    std::cout << "  block name       = " << db.block.name << "\n";
-    std::cout << "  block inst count = " << db.block.instanceCount() << "\n";
-
-    std::cout << "========================\n";
+    if (db.block.rows.empty()) {
+        std::cerr << "Error: no rows generated\n";
+        return 1;
+    }
+    const Row& first_row = db.block.rows[0];
+    Rect row_bbox = first_row.bbox();
     std::cout << "block row count = " << db.block.rowCount() << "\n";
-    if(!db.block.rows.empty()){
-        const Row& first_row = db.block.rows[0];
-        Rect row_bbox = first_row.bbox();
-
-        std::cout << "Test row:\n";
-        std::cout << "name = " << first_row.name << "\n";
-        std::cout << "site = " << first_row.site->name << "\n";
-        std::cout << "origin = (" << first_row.origin.x << " " << first_row.origin.y << ")\n";
-        std::cout << "site count = " << first_row.site_count << "\n";
-        std::cout << "spacing = " << first_row.site_spacing << "\n";
-        std::cout << "width = " << first_row.width() << "\n";
-        std::cout << "height = " << first_row.height() << "\n";
-        std::cout << "bbox = (" << row_bbox.lx << " " << row_bbox.ly << ") (" << row_bbox.ux << " " << row_bbox.uy << ")\n";
-        std::cout << "valid = " << first_row.isValid() << "\n";
-    }
-    if (found_site != nullptr) {
-        std::cout << "  found site       = " << found_site->name << "\n";
-    }
-
-    if (found_master != nullptr) {
-        std::cout << "  found master     = " << found_master->name << "\n";
-    }
-    if (db.block.instances.empty()){
-        std::cerr << "Error : block has no instances\n";
-        return 1;
-    }
-    const Instance& first_inst = db.block.instances[0];
-
-    std::cout << "  instance name    = " << first_inst.name << "\n";
-    std::cout << "  instance master  = " << first_inst.master->name << "\n";
-    std::cout << "  instance width   = " << first_inst.width() << "\n";
-    std::cout << "  instance height  = " << first_inst.height() << "\n";
-    std::cout << "  instance area    = " << first_inst.area() << "\n";
+    std::cout << "Test row:\n";
+    std::cout << "  name       = " << first_row.name << "\n";
+    std::cout << "  site       = " << first_row.site->name << "\n";
+    std::cout << "  origin     = ("
+            << first_row.origin.x << " "
+            << first_row.origin.y << ")\n";
+    std::cout << "  site count = " << first_row.site_count << "\n";
+    std::cout << "  spacing = " << first_row.site_spacing << "\n";
+    std::cout << "  width = " << first_row.width() << "\n";
+    std::cout << "  height = " << first_row.height() << "\n";
+    std::cout << "  bbox       = ("
+            << row_bbox.lx << " " << row_bbox.ly << ") ("
+            << row_bbox.ux << " " << row_bbox.uy << ")\n";
+    std::cout << "  valid      = " << first_row.isValid() << "\n";
 
     return 0;
 }

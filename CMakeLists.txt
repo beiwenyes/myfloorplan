@@ -7,6 +7,7 @@ add_executable(minifloorplan
     src/main.cpp
     src/Options.cpp
     src/floorplan/FloorplanEngine.cpp
+    src/parser/LefParser.cpp
 )
 
 target_include_directories(minifloorplan PRIVATE src)
