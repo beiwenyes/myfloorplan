@@ -94,6 +94,21 @@ int main(int argc, char* argv[])
               << db.block.die_area.ux << " " << db.block.die_area.uy << ")\n";
     std::cout << "die area valid = " << db.block.hasValidDieArea() << "\n";
     std::cout << "status = success\n";
+    std::cout << "component count = " << db.block.instanceCount() << "\n";
+    if(!db.block.instances.empty()){
+        const Instance& instance = db.block.instances[0];
+        std::cout << "First DEF component:\n";
+        std::cout << "  instance name = " << instance.name << "\n";
+        if(instance.master != nullptr){
+            std::cout << "  master name = " << instance.master->name << "\n";
+            std::cout << "  width = " << instance.width() << "\n";
+            std::cout << "  height = " << instance.height() << "\n";
+            std::cout << "  area = " << instance.area() << "\n";
+        }
+        std::cout << "  valid = " << instance.isValid() << "\n";
+        std::cout << "  placed = " << instance.isPlaced() << "\n";
+
+    }
     std::cout << "====================\n";
     if(db.sites.empty()){
         std::cerr << "Error:  no site found in LEF\n";

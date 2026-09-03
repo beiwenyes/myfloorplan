@@ -17,6 +17,8 @@ bool DefParser::read(const std::string& file_path, Database& db)
     line_count_  = 0;
     dbu_per_micron_ = 0;
 
+    bool inside_components = false;
+
     std::string line;
     while(std::getline(input, line)){
         ++line_count_;
@@ -73,6 +75,43 @@ bool DefParser::read(const std::string& file_path, Database& db)
                 db.block.die_area.uy = uy;
             } else{
                 std::cerr << "Warning: fail to parse DIEAREA at line" << line_count_ << "\n";
+            }
+            continue;
+        }
+
+        if(word == "COMPONENTS"){
+            inside_components = true;
+            continue;
+        }
+
+        if(inside_components && word == "-"){
+            std::string instance_name;
+            std::string master_name;
+
+            ss >> instance_name >> master_name;
+
+            Instance current_instance;
+            current_instance.name = instance_name;
+
+            Master* master = db.findMaster(master_name);
+            if(master == nullptr){
+                std::cerr << "Can't find the master for instance: " << instance_name << " : " <<master_name << "\n";
+                continue;
+            }
+            current_instance.master = master;
+            // Important:
+            // This early parser intentionally ignores existing PLACED coordinates.
+            // We only read the logical component relationship:
+            // instance name -> master name.
+            current_instance.status = PlacementStatus::Unplaced;
+            db.block.addInstance(current_instance);
+            continue;
+        }
+        if(inside_components && word == "END"){
+            std::string end_name;
+            ss >> end_name;
+            if(end_name == "COMPONENTS"){
+                inside_components = false;
             }
             continue;
         }
