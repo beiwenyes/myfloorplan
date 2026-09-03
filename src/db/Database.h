@@ -3,18 +3,20 @@
 #include "Block.h"
 #include "Master.h"
 #include "Site.h"
-
+#include "Tech.h"
 #include <string>
 #include <unordered_map>
 using namespace std;
 struct Database
 {
+    Tech tech;
     //用名字快速查找对象的表例如：
     //"NAND2_X1" → Master 对象
     //"INV_X1"   → Master 对象
     //"DFF_X1"   → Master 对象
     unordered_map<string, Site> sites;
     unordered_map<string, Master> masters;
+    
 
     Block block;
     void addSite(const Site& site){

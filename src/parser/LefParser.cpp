@@ -55,6 +55,7 @@ bool LefParser::read(const std::string& file_path, Database& db)
 
             if(unit =="MICRONS" && value > 0){
                 dbu_per_micron = value;
+                db.tech.dbu_per_micron = value;
             }
 
             continue;

@@ -9,7 +9,7 @@
 #include "db/Row.h"
 #include "floorplan/FloorplanEngine.h"
 #include "parser/LefParser.h"
-
+#include "parser/DefParser.h"
 int main(int argc, char* argv[])
 {
     Options options;
@@ -44,15 +44,20 @@ int main(int argc, char* argv[])
     Database db;
     //create lef parser
     LefParser lef_parser;
-    std::cout << "Parse the LEF:\n";
-    std::cout << "file = " << options.lef_file << "\n";
-
     if(!lef_parser.read(options.lef_file, db)){
         return 1;
     }
+    //create def parser
+    DefParser def_parser;
+    if(!def_parser.read(options.def_file, db)){
+        return 1;
+    }
     //测试parser的内容
+    std::cout << "Parse the LEF:\n";
+    std::cout << "file = " << options.lef_file << "\n";
     std::cout << "line count = " << lef_parser.lineCount() << "\n";
     std::cout << "site count = " << db.siteCount() << "\n";
+    std::cout << "LEF dbu per micron = " << db.tech.dbu_per_micron << "\n";
     std::cout << "status = success\n";
     //测试parser的site是否正常保存
     std::cout << "Parsed sites:\n";
@@ -65,7 +70,17 @@ int main(int argc, char* argv[])
         std::cout << "  height  = " << site.height << "\n";
         std::cout << "  valid   = " << site.isValid() << "\n";
     }
-
+    std::cout << "====================\n";
+    std::cout << "Parse the DEF:\n";
+    std::cout << "file = " << options.def_file << "\n";
+    std::cout << "line count = " << def_parser.lineCount() << "\n";
+    std::cout << "dbu per micron = " << def_parser.dbuPerMicron() << "\n";
+    std::cout << "design name = " << db.block.name << "\n";
+    std::cout << "die area = (" << db.block.die_area.lx << " " << db.block.die_area.ly << ") (" 
+              << db.block.die_area.ux << " " << db.block.die_area.uy << ")\n";
+    std::cout << "die area valid = " << db.block.hasValidDieArea() << "\n";
+    std::cout << "status = success\n";
+    std::cout << "====================\n";
     if(db.sites.empty()){
         std::cerr << "Error:  no site found in LEF\n";
         return 1;
@@ -74,17 +89,20 @@ int main(int argc, char* argv[])
 
     std::cout << "Use site for row generation:\n";
     std::cout << "  site name = " << site_name << "\n";
-    db.block.name = "test_design";
+    const int core_margin = 10000;
 
-    db.block.die_area.lx = 0;
-    db.block.die_area.ly = 0;
-    db.block.die_area.ux = 10000;
-    db.block.die_area.uy = 8000;
+    db.block.core_area.lx = db.block.die_area.lx + core_margin;
+    db.block.core_area.ly = db.block.die_area.ly + core_margin;
+    db.block.core_area.ux = db.block.die_area.ux - core_margin;
+    db.block.core_area.uy = db.block.die_area.uy - core_margin;
 
-    db.block.core_area.lx = 1000;
-    db.block.core_area.ly = 1000;
-    db.block.core_area.ux = 9000;
-    db.block.core_area.uy = 7000;
+    std::cout << "Temporary core area:\n";
+    std::cout << "  core area = ("
+            << db.block.core_area.lx << " "
+            << db.block.core_area.ly << ") ("
+            << db.block.core_area.ux << " "
+            << db.block.core_area.uy << ")\n";
+    std::cout << "  valid = " << db.block.hasValidCoreArea() << "\n";
     FloorplanEngine engine(db);
     if(!engine.makeUniformRows(site_name)){
         return 1;
@@ -112,5 +130,7 @@ int main(int argc, char* argv[])
             << row_bbox.ux << " " << row_bbox.uy << ")\n";
     std::cout << "  valid      = " << first_row.isValid() << "\n";
 
+    
+    
     return 0;
 }
