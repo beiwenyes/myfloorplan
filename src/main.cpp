@@ -118,21 +118,18 @@ int main(int argc, char* argv[])
 
     std::cout << "Use site for row generation:\n";
     std::cout << "  site name = " << site_name << "\n";
-    const int core_margin = 10000;
 
-    db.block.core_area.lx = db.block.die_area.lx + core_margin;
-    db.block.core_area.ly = db.block.die_area.ly + core_margin;
-    db.block.core_area.ux = db.block.die_area.ux - core_margin;
-    db.block.core_area.uy = db.block.die_area.uy - core_margin;
-
-    std::cout << "Temporary core area:\n";
-    std::cout << "  core area = ("
-            << db.block.core_area.lx << " "
-            << db.block.core_area.ly << ") ("
-            << db.block.core_area.ux << " "
-            << db.block.core_area.uy << ")\n";
-    std::cout << "  valid = " << db.block.hasValidCoreArea() << "\n";
     FloorplanEngine engine(db);
+    const Dbu core_margin = 10000;
+    if(!engine.initializeCoreAreaWithMargin(core_margin)){
+        return 1;
+    }
+    std::cout << "  core area = ("
+        << db.block.core_area.lx << " "
+        << db.block.core_area.ly << ") ("
+        << db.block.core_area.ux << " "
+        << db.block.core_area.uy << ")\n";
+    std::cout << "  valid = " << db.block.hasValidCoreArea() << "\n";
     if(!engine.makeUniformRows(site_name)){
         return 1;
     }

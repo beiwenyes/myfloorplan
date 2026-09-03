@@ -8,6 +8,8 @@ class FloorplanEngine
 public:
     explicit FloorplanEngine(Database& db);
     
+    bool initializeCoreAreaWithMargin(Dbu margin);
+    
     bool makeUniformRows(const std::string& site_name);
 //引用外部的Database
 private:

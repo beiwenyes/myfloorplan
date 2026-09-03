@@ -7,7 +7,31 @@ FloorplanEngine::FloorplanEngine(Database& db)
     : db_(db)
 {
 }
+bool FloorplanEngine::initializeCoreAreaWithMargin(Dbu margin)
+{
+    if(!db_.block.hasValidDieArea()){
+        std::cerr << "Error: cannot initialize core area because die area is invalid.\n";
+        return false;
+    }
+    if(margin < 0){
+        std::cerr << "Error: core margin cannot be negative.\n";
+        return false;
+    }
 
+    const Rect& die = db_.block.die_area;
+
+    if(die.width() <= 2 * margin || die.height() <= 2 * margin){
+        std::cerr << "Error: core margin is too large for die area.\n";
+        return false;
+    }
+
+    db_.block.core_area.lx = die.lx + margin;
+    db_.block.core_area.ly = die.ly + margin;
+    db_.block.core_area.ux = die.ux - margin;
+    db_.block.core_area.uy = die.uy - margin;
+
+    return true;
+}
 bool FloorplanEngine::makeUniformRows(const std::string& site_name)
 {
     Site* site = db_.findSite(site_name);
