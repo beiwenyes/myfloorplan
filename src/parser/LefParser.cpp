@@ -32,6 +32,9 @@ bool LefParser::read(const std::string& file_path, Database& db)
     //inside_site表示当前是否在site字段中
     bool inside_site = false;
     Site current_site;
+    //检测是否是在macro以区分site
+    bool inside_macro = false;
+    Master current_master;
 
     std::string line;
     while (std::getline(input, line)){
@@ -47,7 +50,7 @@ bool LefParser::read(const std::string& file_path, Database& db)
         if(word.empty()){
             continue;
         }
-
+        //add lef micron
         if(word == "DATABASE"){
             std::string unit;
             int value = 0;
@@ -60,8 +63,8 @@ bool LefParser::read(const std::string& file_path, Database& db)
 
             continue;
         }
-
-        if(word == "SITE"){
+        //add site name and make sure inside the site definite
+        if(!inside_macro && word == "SITE"){
             std::string site_name;
             ss >> site_name;
             //清空之前的site存储
@@ -98,6 +101,60 @@ bool LefParser::read(const std::string& file_path, Database& db)
                 }
                 inside_site = false;
                 current_site = Site{};
+            }
+            continue;
+        }
+        //add the master
+        if(word == "MACRO"){
+            std::string macro_name;
+            ss >> macro_name;
+
+            current_master = Master{};
+            current_master.name = macro_name;
+            inside_macro = true;
+
+            continue;
+        }
+
+        if(inside_macro && word == "CLASS"){
+            std::string class_name;
+            ss >> class_name;
+            if(class_name == "CORE"){
+                current_master.type = MasterType::Core;
+            } else if(class_name == "BLOCK"){
+                current_master.type = MasterType::Block;
+            } else{
+                current_master.type = MasterType::Unknown;
+            }
+            continue;
+        }
+
+        if(inside_macro && word == "SIZE"){
+            double width_micron = 0.0;
+            double height_micron = 0.0;
+            std::string by_word;
+
+            ss >> width_micron >> by_word >> height_micron;
+
+            if(by_word == "BY"){
+                current_master.width = micronToDbu(width_micron, dbu_per_micron);
+                current_master.height = micronToDbu(height_micron, dbu_per_micron);
+            }
+            continue;
+        }
+
+        if(inside_macro && word == "END"){
+            std::string end_name;
+            ss >> end_name;
+
+            if(end_name == current_master.name){
+                if(current_master.isValid()){
+                    db.addMaster(current_master);
+                } else{
+                    std::cerr << "Warning: skip invalid MACRO: " << current_master.name << "\n";
+                }
+                inside_macro = false;
+                current_master = Master{};
             }
             continue;
         }

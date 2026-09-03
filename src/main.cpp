@@ -57,8 +57,22 @@ int main(int argc, char* argv[])
     std::cout << "file = " << options.lef_file << "\n";
     std::cout << "line count = " << lef_parser.lineCount() << "\n";
     std::cout << "site count = " << db.siteCount() << "\n";
+    std::cout << "master count = " << db.masterCount() << "\n";
     std::cout << "LEF dbu per micron = " << db.tech.dbu_per_micron << "\n";
     std::cout << "status = success\n";
+    //test the master
+    Master* dff_master = db.findMaster("DFFPOSX1");
+    if(dff_master != nullptr){
+        std::cout << "Found DFFPOSX1 master:\n";
+        std::cout << "  name = " <<  dff_master->name << "\n";
+        std::cout << "  width = " << dff_master->width<< "\n";
+        std::cout << "  height = " << dff_master->height << "\n";
+        std::cout << "  area = " << dff_master->area() << "\n";
+        std::cout << "  valid = " <<  dff_master->isValid() << "\n";
+        std::cout << "  isCore = " << dff_master->isCore() << "\n";
+    } else {
+        std::cout << "DFFPOSX1 master not found\n";
+    }
     //测试parser的site是否正常保存
     std::cout << "Parsed sites:\n";
     //dbsite -> pair,pair具有map的内容，key = pair.first value = pair.second
