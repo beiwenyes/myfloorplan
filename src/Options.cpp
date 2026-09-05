@@ -1,10 +1,14 @@
 #include "Options.h"
 #include <iostream>
+#include <stdexcept>
 
 void printUsage(const char* program_name)
 {
+    //[] means it's optional
     std::cerr << "Usage: " << program_name
-              << "--lef <file> --def <file> --output <file>\n";
+              << "--lef <file> --def <file> --output <file>"
+              << " [--core-margin <dbu>]"
+              << " [--site <site_name>]\n";
 }
 
 bool parseOptions(int argc, char* argv[], Options& options)
@@ -18,8 +22,18 @@ bool parseOptions(int argc, char* argv[], Options& options)
             options.def_file = argv[++i];
         } else if (arg == "--output" && i+1 < argc){
             options.output_file = argv[++i];
-        } else{
-            std::cerr << "Unknow or incoomplete argument" << arg << "\n";
+        } else if (arg == "--core-margin" && i+1 < argc){
+            try{
+                //change the string to int. if input is not number will be catch
+                options.core_margin = std::stoi(argv[++i]);
+            } catch (const std::exception&){
+                std::cerr << "Invalid value for --core-margin\n";
+                return false;
+            }
+        } else if (arg == "--site" && i + 1 < argc){
+            options.site_name = argv[++i];
+        } else {
+            std::cerr << "Unknown or incomplete argument: " << arg << "\n";
             return false;
         }
     }

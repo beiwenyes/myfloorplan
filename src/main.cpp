@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
         printUsage(argv[0]);
         return 1;
     }
-    //start site
+    //start point
     std::cout << "MiniFloorplan Started\n";
     std::cout << "LEF file      : " << options.lef_file << "\n";
     std::cout << "DEF file      : " << options.def_file << "\n";
@@ -84,14 +84,27 @@ int main(int argc, char* argv[])
     std::cout << "\n";
     //def report end
     //start initialize
-    std::cout << "[3] Initialie floorplan\n";
+    std::cout << "[3] Initialize floorplan\n";
     if(db.sites.empty()){
         std::cerr << "Error:  no site found in LEF\n";
         return 1;
     }
-    std::string site_name = db.sites.begin()->first;
+
+    std::string site_name;
+    if(!options.site_name.empty()){
+        site_name = options.site_name;
+    } else {
+        site_name = db.sites.begin() -> first;
+    }
+
+    if(db.findSite(site_name) == nullptr){
+        std::cerr << "Error: site not found: " << site_name << "\n";
+        return 1;
+    }
+
     FloorplanEngine engine(db);
-    const Dbu core_margin = 10000;
+
+    const Dbu core_margin = options.core_margin;
     if(!engine.initializeCoreAreaWithMargin(core_margin)){
         return 1;
     }
@@ -99,6 +112,7 @@ int main(int argc, char* argv[])
         return 1;
     }
     std::cout << "  selected site : " << site_name << "\n";
+    std::cout << "  core margin = " << core_margin << "\n";
     printRect("core area", db.block.core_area);
     std::cout << "  row count     : " << db.block.rowCount() << "\n";
  
