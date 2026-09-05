@@ -9,6 +9,7 @@ add_executable(minifloorplan
     src/floorplan/FloorplanEngine.cpp
     src/parser/LefParser.cpp
     src/parser/DefParser.cpp
+    src/writer/DefWriter.cpp
 )
 
 target_include_directories(minifloorplan PRIVATE src)
