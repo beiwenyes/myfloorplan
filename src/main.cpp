@@ -113,8 +113,13 @@ int main(int argc, char* argv[])
     }
     std::cout << "  selected site : " << site_name << "\n";
     std::cout << "  core margin = " << core_margin << "\n";
-    printRect("core area", db.block.core_area);
+    printRect("core rect", db.block.core_area);
     std::cout << "  row count     : " << db.block.rowCount() << "\n";
+    std::cout << "  instance area : " << db.block.totalInstanceArea() << "\n";
+    std::cout << "  core area     : " << db.block.coreArea() << "\n";
+    std::cout << "  row area      : " << db.block.rowArea() << "\n";
+    std::cout << "  core util %   : " << db.block.coreUtilization() * 100 << "%" << "\n";
+    std::cout << "  row util %    : " << db.block.rowUtilization() * 100 << "%" << "\n";
  
     if (!db.block.rows.empty()) {
         const Row& row = db.block.rows[0];

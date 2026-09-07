@@ -36,8 +36,8 @@ struct Block
         return static_cast<int>(instances.size());
     }
 
-    Dbu totalInstanceArea() const{
-        Dbu total_area = 0;
+    Area totalInstanceArea() const{
+        Area total_area = 0;
         for(const Instance& instance : instances){
             total_area += instance.area();
         }
@@ -50,5 +50,36 @@ struct Block
 
     int rowCount() const{
         return static_cast<int>(rows.size());
+    }
+
+    Area coreArea() const{
+        if(!core_area.isValid()){
+            return 0;
+        }
+        return core_area.area();
+    }
+
+    Area rowArea() const{
+        Area total_area = 0;
+        for(const Row& row : rows){
+            total_area += row.bbox().area();
+        }
+        return total_area;
+    }
+
+    double coreUtilization() const{
+        Area area = coreArea();
+        if(area == 0){
+            return 0.0;
+        }
+        return static_cast<double>(totalInstanceArea()) / area;
+    }
+
+    double rowUtilization() const{
+        Area area = rowArea();
+        if(area  == 0){
+            return 0.0;
+        }
+        return static_cast<double>(totalInstanceArea()) / area;
     }
 };

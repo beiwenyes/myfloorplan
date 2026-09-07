@@ -1,7 +1,7 @@
 #pragma once
 
 using Dbu = int;
-
+using Area = long long;
 struct Point
 {
     Dbu x = 0;
@@ -23,8 +23,8 @@ struct Rect
         return uy - ly;
     }
 
-    Dbu area() const{
-        return width() * height();
+    Area area() const{
+        return static_cast<Area>(width()) * height();
     }
 
     bool isValid() const{

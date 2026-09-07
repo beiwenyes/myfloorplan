@@ -20,8 +20,8 @@ struct Master
         return !name.empty() && width > 0;
     }
 
-    Dbu area() const{
-        return width * height;
+    Area area() const{
+        return static_cast<Area>(width) * height;
     }
 
     bool isCore() const{

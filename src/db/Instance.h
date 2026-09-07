@@ -44,8 +44,8 @@ struct Instance
         return master->height;
     }
 
-    Dbu area() const{
-        return width() * height();
+    Area area() const{
+        return static_cast<Area>(width()) * height();
     }
     //bounding box
     Rect bbox() const{
