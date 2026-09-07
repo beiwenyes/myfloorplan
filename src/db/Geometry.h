@@ -31,9 +31,15 @@ struct Rect
         return ux > lx && uy > ly;
     }
 
-    bool constains(const Point& p) const{
+    bool contains(const Point& p) const{
         return p.x >= lx && p.x <= ux && 
                 p.y >= ly && p.y <= uy;
     }
     
+    bool contains(const  Rect& other) const{
+        return other.lx >= lx &&
+               other.ly >= ly &&
+               other.ux <= ux &&
+               other.uy <= uy;
+    }
 };

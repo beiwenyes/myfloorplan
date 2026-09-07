@@ -78,3 +78,77 @@ bool FloorplanEngine::makeUniformRows(const std::string& site_name)
     }
     return true;
 }
+
+bool FloorplanEngine::validateFloorplan() const
+{
+    if(!db_.block.hasValidDieArea()){
+        std::cerr << "Error: invalid die area\n";
+        return false;
+    }
+
+    if(!db_.block.hasValidCoreArea()){
+        std::cerr << "Error: invalid core area\n";
+        return false;
+    }
+
+    if(!db_.block.die_area.contains(db_.block.core_area)){
+        std::cerr << "Error: core area is outside die area\n";
+        return false;
+    }
+
+    if(db_.block.rowCount() == 0){
+        std::cerr << "Error: no placement rows generated\n";
+        return false;
+    }
+
+    Area instance_area = db_.block.totalInstanceArea();
+    Area row_area = db_.block.rowArea();
+
+    if(instance_area > row_area){
+        std::cerr << "Error: instance area exceeds row area\n";
+        std::cerr << "  instance area = " << instance_area << "\n";
+        std::cerr << "  row area = " << row_area << "\n";
+        return false;
+    }
+
+    if(!validateInstancesFitRows()){
+        return false;
+    }
+
+    return true;
+}
+
+bool FloorplanEngine::validateInstancesFitRows() const
+{
+    if(db_.block.rows.empty()){
+        std::cerr << "Error: cannot validate instances because no rows exist\n";
+        return false;
+    }
+
+    const Row& first_row = db_.block.rows[0];
+    const Dbu row_height = first_row.height();
+    
+    if(row_height <= 0){
+        std::cerr << "Error: invalid row height\n";
+        return false;
+    }
+
+    for (const Instance& instance : db_.block.instances){
+        if(instance.master == nullptr){
+            std::cerr << "Error: instance has no master: "
+                      << instance.name << "\n";
+            return false;
+        }
+
+        if(instance.height() != row_height){
+            std::cerr << "Error: instance height does not match row height\n";
+            std::cerr << "  instance name   = " << instance.name << "\n";
+            std::cerr << "  master name     = " << instance.master->name << "\n";
+            std::cerr << "  instance height = " << instance.height() << "\n";
+            std::cerr << "  row height      = " << row_height << "\n";
+            return false;
+        }
+    }
+
+    return true;
+}

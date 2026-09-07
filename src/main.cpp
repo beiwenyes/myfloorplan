@@ -111,6 +111,9 @@ int main(int argc, char* argv[])
     if(!engine.makeUniformRows(site_name)){
         return 1;
     }
+    if(!engine.validateFloorplan()){
+        return 1;
+    }
     std::cout << "  selected site : " << site_name << "\n";
     std::cout << "  core margin = " << core_margin << "\n";
     printRect("core rect", db.block.core_area);
@@ -120,7 +123,7 @@ int main(int argc, char* argv[])
     std::cout << "  row area      : " << db.block.rowArea() << "\n";
     std::cout << "  core util %   : " << db.block.coreUtilization() * 100 << "%" << "\n";
     std::cout << "  row util %    : " << db.block.rowUtilization() * 100 << "%" << "\n";
- 
+    std::cout << "  floorplan valid : 1\n";
     if (!db.block.rows.empty()) {
         const Row& row = db.block.rows[0];
         Rect row_bbox = row.bbox();
